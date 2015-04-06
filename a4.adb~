@@ -11,17 +11,24 @@ begin
     wordLen := 0;
     for k in 1..length(line) loop
     
-    
+        put(element(line,k));
+        new_line(1);
+        
+        
         if element(line,k) /= ' ' then -- if not blank ++ word length
             wordLen := wordLen +1;
         end if;
         
         if  element(line,k) = ' ' then
-            if wordLen <= 3 then --if 
+            if wordLen <= 3 and wordLen > 0 then --if
+                put_line("ADDED AT SPACE"); 
                 count:= count+1;
                 for j in k-wordLen..k loop
                     replace_element(line,j,' ');
                 end loop;
+                put_line("AFTER ERASE");
+                put(line);
+                new_line(1);
                 wordLen :=0;
             end if;
             
@@ -29,13 +36,18 @@ begin
         end if;
         
         -- if end of sentence -1 word length
-        if element(line,k)='.'or element(line,k)='!'or element(line,k)='?'or element(line,k)=':'or element(line,k)=';'or element(line,k)=','then
+        if i=length(line)or element(line,k)='.'or element(line,k)='!'or element(line,k)='?'or 
+           element(line,k)=':'or element(line,k)=';'or element(line,k)=','then
             wordLen := wordLen -1;
-            if wordLen <= 3 then --if 
+            if wordLen <= 3 and wordLen > 0 then --if 
+                put_line("ADDED AT END");
                 count:= count+1;
                 for j in k-wordLen..k loop
                     replace_element(line,j,' ');
                 end loop;
+                put_line("AFTER ERASE");
+                put(line);
+                new_line(1);
                 wordLen :=0;
             end if;
             wordLen :=0;           
@@ -110,9 +122,9 @@ end illegal;
    Filename   : String := "test.txt";
    File       : Ada.Text_IO.File_Type;
    Line_Count : Natural := 0;
-   wordLen ,syllables, words , sentences  : Natural := 0;
+   wordLen , words , sentences  : Natural := 0;
    sLine : unbounded_string;
-   smallWords, extras : integer := 0;
+   syllables,smallWords, extras : integer := 0;
    
 begin
    Ada.Text_IO.Open (File => File,
@@ -149,11 +161,23 @@ begin
                 
                
             end loop;
-
+            put(Line);
+            new_line(1);
             smallCount(Line,smallWords);--counts and erases all words of three letters or less
+            put_line("small word count");
+            put(smallWords);
+            new_line(1);
             
             syllables := syllables + allSyllables(Line); --counts all the vowels after the small words are erases
+            put_line("vowel count");
+            put(syllables);
+            new_line(1);
+            
+            
             extras := extras + illegal(Line);
+            put_line("Extra count");
+            put(extras);
+            new_line(1);
             
         end;
     end loop;
