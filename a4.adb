@@ -1,0 +1,167 @@
+with ada.Text_IO; use Ada.Text_IO;
+with ada.Integer_Text_IO; use Ada.Integer_Text_IO;
+with ada.strings.unbounded; use ada.strings.unbounded;
+with ada.strings.unbounded.Text_IO; use ada.strings.unbounded.Text_IO;
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+procedure a4 is
+
+procedure smallCount (line : in out unbounded_string ; count: in out integer) is -- run before counting vowels
+    wordLen : integer;
+begin
+    wordLen := 0;
+    for k in 1..length(line) loop
+    
+    
+        if element(line,k) /= ' ' then -- if not blank ++ word length
+            wordLen := wordLen +1;
+        end if;
+        
+        if  element(line,k) = ' ' then
+            if wordLen <= 3 then --if 
+                count:= count+1;
+                for j in k-wordLen..k loop
+                    replace_element(line,j,' ');
+                end loop;
+                wordLen :=0;
+            end if;
+            
+            wordLen := 0;         
+        end if;
+        
+        -- if end of sentence -1 word length
+        if element(line,k)='.'or element(line,k)='!'or element(line,k)='?'or element(line,k)=':'or element(line,k)=';'or element(line,k)=','then
+            wordLen := wordLen -1;
+            if wordLen <= 3 then --if 
+                count:= count+1;
+                for j in k-wordLen..k loop
+                    replace_element(line,j,' ');
+                end loop;
+                wordLen :=0;
+            end if;
+            wordLen :=0;           
+        end if;    
+    end loop;
+end smallCount;
+
+
+
+function allSyllables(line: unbounded_string) return integer is
+    count: integer;
+begin
+    count := 0;
+    for i in 1..length(line) loop
+        if element(line, i)= 'a' or element(line, i)= 'e' or 
+        element(line, i)= 'i' or element(line, i)= 'o' or 
+        element(line, i)= 'u' or element(line, i)= 'y' then
+            count := count +1;
+        end if;
+    end loop;
+    
+    return count; 
+end allSyllables;
+
+
+function illegal(line: unbounded_string) return integer is
+    count: integer;
+begin
+    count:=0;
+    
+    for i in 1..length(line) loop
+        if element(line, i)= 'a' or element(line, i)= 'e' or 
+        element(line, i)= 'i' or element(line, i)= 'o' or 
+        element(line, i)= 'u' or element(line, i)= 'y' then
+            if i<length(line) then
+                if element(line, i+1)= 'a' or 
+                   element(line, i+1)= 'e' or 
+                   element(line, i+1)= 'i' or 
+                   element(line, i+1)= 'o' or 
+                   element(line, i+1)= 'u' or 
+                   element(line, i+1)= 'y' then
+                    count := count +1;
+                end if;
+            end if;
+        end if;
+        
+        if element(line,i) = ' ' or 
+           element(line,i) = '.' or 
+           element(line,i) = '!' or 
+           element(line,i) = ';' or 
+           element(line,i) = ':' or 
+           element(line,i) = ',' or 
+           element(line,i) = '?' then
+            if i>2 then
+                if element(line,i-1) = 'e' and element(line,i-2) /='l'then
+                    count:=count+1;
+                end if;
+                
+                if element(line,i-2) ='e'then
+                    if element(line,i-1) = 's' or element(line,i-1) ='d' then
+                        count:=count+1;
+                    end if;
+                end if;
+            end if;
+        end if;
+    end loop;
+    
+    return count;
+end illegal;
+
+
+   Filename   : String := "test.txt";
+   File       : Ada.Text_IO.File_Type;
+   Line_Count : Natural := 0;
+   wordLen ,syllables, words , sentences  : Natural := 0;
+   sLine : unbounded_string;
+   smallWords, extras : integer := 0;
+   
+begin
+   Ada.Text_IO.Open (File => File,
+                     Mode => Ada.Text_IO.In_File,
+                     Name => Filename);
+    while not Ada.Text_IO.End_Of_File (File) loop
+        declare
+            Line :  unbounded_string := Get_Line (File);
+            
+        begin
+            Line := to_unbounded_string(To_Lower(to_string(Line)));
+            sLine := Line;
+            
+            
+
+            for k in 1..length(Line) loop--goes through both Line and sLine
+                --incrementing sentences
+                if element(Line,k) = '.' or element(Line,k) = '!' or element(Line,k) = '?' or element(Line,k) = ':' or element(Line,k) = ';' then
+                    if k=length(Line) then
+                        sentences := sentences + 1;
+                    elsif element(Line, k+1) = ' ' then
+                        sentences := sentences +1;
+                    end if;
+                end if;
+                
+                 -- counting words
+                if element(Line,k) /= ' ' then
+                    if k = length(Line) then
+                        words := words+1;
+                    elsif element(Line,k+1) = ' ' then
+                        words := words+1;
+                    end if;
+                end if;
+                
+               
+            end loop;
+
+            smallCount(Line,smallWords);--counts and erases all words of three letters or less
+            
+            syllables := syllables + allSyllables(Line); --counts all the vowels after the small words are erases
+            extras := extras + illegal(Line);
+            
+        end;
+    end loop;
+    
+    syllables := syllables + smallWords - extras;
+    put(syllables);
+    put(sentences);
+    put(words);
+    Ada.Text_IO.Close (File);
+end a4;
+
